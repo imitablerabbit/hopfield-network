@@ -9,6 +9,15 @@
 		<button id="store-button">Store Pattern</button>
 		<button id="recover-button">Recover Pattern</button>
 		<script src="hopfield.js"></script>
+		<script>
+			var h = new HopfieldNetwork(3);
+			h.initialiseNodes();
+			h.addPattern([1, 1, -1]);
+			h.addPattern([-1, -1, 1]);
+			h.setActivations([1, -1, -1]);
+			h.recover();
+			console.log(h.getActivations());
+		</script>
 	</body>
 </html>
 

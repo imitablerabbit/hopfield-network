@@ -4,7 +4,7 @@
  */
 function Node(weights, activation, index) {
 	this.weights = weights; // Weight vector as a javacript array
-	this activation = activation; // The activation of the node
+	this.activation = activation; // The activation of the node
 	this.index = index; // Position in the network
 }
 
@@ -24,9 +24,26 @@ Node.prototype.addTransposedPattern = function(newPattern) {
 	}
 }
 
-
-
-
+/**
+ * calculateActivation takes in the activations of all the nodes and then
+ * updates the nodes activation based on the hopfield regeneration algorithm.
+ * calculateActivation returns the new activation for the node.
+ */
+Node.prototype.calculateActivation = function(activations) {
+	var sum = 0;
+	var newActivation = 0;
+	for (var i = 0; i < activations.length; i++) {
+		sum += activations[i] * this.weights[i];
+	}
+	if (sum > 0)
+		newActivation = 1;
+	if (sum == 0)
+		newActivation = 0;
+	if (sum < 0)
+		newActivation = -1;
+	this.activation = newActivation;
+	return newActivation;		
+}
 
 /**
  * HopfieldNetwork is a hopfield network built using object oriented principles
@@ -41,14 +58,14 @@ function HopfieldNetwork(nodeNum=4) {
  * give them default values.
  */
 HopfieldNetwork.prototype.initialiseNodes = function() {
-	var weights = [];
-	for(var i = 0; i < this.nodeNum; i++) {
-		weights[i] = 0;
-	}
 	var activation = 0;
 	for(var i = 0; i < this.nodeNum; i++) {
+		var weights = [];
+		for(var j = 0; j < this.nodeNum; j++) { // new weight array each time
+			weights[j] = 0;
+		}
 		var nodeWeights = weights.slice(); // Shallow copy of zeroed weights
-		this.nodes = new Node(weights, activationi, i);
+		this.nodes[i] = new Node(weights, activation, i);
 	}
 }
 
@@ -80,10 +97,7 @@ HopfieldNetwork.prototype.addPattern = function(patternArray) {
  * current activations for the nodes.
  */
 HopfieldNetwork.prototype.addActivationsPattern = function() {
-	var pattern = []; // Make pattern from activations
-	for (var i = 0; i < this.nodes.length; i++)
-		pattern[i] = this.nodes[i].activation;
-	return this.addPattern(pattern);
+	return this.addPattern(this.getActivations());
 }
 
 /**
@@ -93,7 +107,44 @@ HopfieldNetwork.prototype.setActivations = function(activations) {
 	if (activations.length !== this.nodes.length) {
 		throw "Number of activations does not match number of network nodes!";
 	}
-	for (var i = 0; i < nodes.length; i++) {
+	for (var i = 0; i < this.nodes.length; i++) {
 		this.nodes[i].activation = activations[i];
 	}
+}
+
+/**
+ * getActivations will return an array of all the activations in order of the
+ * nodes.
+ */
+HopfieldNetwork.prototype.getActivations = function() {
+	var activations = [];
+	for (var i = 0; i < this.nodes.length; i++)
+		activations[i] = this.nodes[i].activation;
+	return activations;
+}
+
+/**
+ * recover will run the hopfield recovery algorithm until the activations of
+ * the nodes no longer change and the network has converged. recover will then
+ * return an array of the activations.
+ */
+HopfieldNetwork.prototype.recover = function() {
+	var nodeChanged = true;
+	var activations = this.getActivations();
+	while (nodeChanged) {
+		nodeChanged = false; // reset nodeChanged each loop
+		var nodeOrder = this.nodes.slice(0); // nodes copy
+		// loop through all the nodes in the network randomly
+		while (nodeOrder.length != 0) {
+			var ri = Math.floor(Math.random() * nodeOrder.length);
+			var node = nodeOrder[ri];
+			nodeOrder.splice(ri, 1); // remove the node
+			var act = node.calculateActivation(activations);
+			if (act !== activations[node.index]) {
+				nodeChanged = true;
+				activations[node.index] = act;
+			}
+		}
+	}
+	return activations;
 }
