@@ -5,19 +5,19 @@
 	</head>
 	<body>
 		<canvas id="hopfield-canvas"></canvas>
+
+		<label for="width-input">Width</label>
+		<input type="number" id="width-input" value="5">
+		<label for="height-input">Height</label>
+		<input type="number" id="height-input" value="5">
+
 		<button id="reset-button">Reset</button>
+		<button id="clear-button">Clear Activations</button>
 		<button id="store-button">Store Pattern</button>
 		<button id="recover-button">Recover Pattern</button>
+
 		<script src="hopfield.js"></script>
-		<script>
-			var h = new HopfieldNetwork(3);
-			h.initialiseNodes();
-			h.addPattern([1, 1, -1]);
-			h.addPattern([-1, -1, 1]);
-			h.setActivations([1, -1, -1]);
-			h.recover();
-			console.log(h.getActivations());
-		</script>
+		<script src="hopfield-ui.js"></script>
 	</body>
 </html>
 
